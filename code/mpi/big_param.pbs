@@ -1,0 +1,32 @@
+# Shell de soumission Class big_para
+#!/bin/bash 
+# Nom de la queue de soumission parallele [small_para,big_para,full,gpu] 
+#PBS -q small_para 
+# Nombre de processeurs et quantite de memoire vive 
+#PBS -l select=1:ncpus=50:mem=800Gb 
+#PBS -l walltime=20:00:00
+# Nom du job 
+#PBS -N rrobin_regcoil
+# Fusionner stdout et stderr dans un fichier unique 
+#PBS -j oe 
+# Email fin du job 
+#PBS -m e -M remi.robin@ljll.math.upmc.fr 
+export OUTDIR=$PBS_O_WORKDIR/Output 
+mkdir -p $OUTDIR 
+# Pour connaitre l environnement necessaire a son job 
+# Initialiser module 
+. /usr/share/modules/init/sh 
+# Charger les modules, par exemple MKL 
+module load anaconda/3
+#module load openmpi/1.8.3
+# L execution a lieu dans un repertoire temporaire 
+# il faut recopier le programme et les donnees 
+cp -r $PBS_O_WORKDIR/code/ . 
+# Lancement du job 
+mpiexec -np 20 python3 code/mpi/main_mpi.py > fichier_sortie.log 2>&1
+# Le repertoire temporaire est efface a la fin du job 
+# il faut donc rapatrier les resultats 
+cp * $OUTDIR
+# Creer le rapport sur le job 
+# qstat -f $PBS_JOBID 
+exit 0 
